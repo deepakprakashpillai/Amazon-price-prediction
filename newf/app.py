@@ -78,25 +78,27 @@ def predict_future_prices(price_history, periods=30):
 
 def prepare_and_render(price_history, min_price, max_price, product_details, product_image, supporting_text, forecast_df):
     # Convert 'ds' column to datetime if it's not already
-    forecast_df["ds"] = pd.to_datetime(forecast_df["ds"])
+    table_html = None
+    if forecast_df is not None:
+        forecast_df["ds"] = pd.to_datetime(forecast_df["ds"])
 
-    # Filter for future dates
-    today = datetime.now()
-    future_forecast = forecast_df[forecast_df["ds"] >= today]
+        # Filter for future dates
+        today = datetime.now()
+        future_forecast = forecast_df[forecast_df["ds"] >= today]
 
-    # Select only the required columns
-    filtered_forecast = future_forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
-    
-    # Rename columns for clarity
-    filtered_forecast = filtered_forecast.rename(columns={
-        "ds": "Date",
-        "yhat": "Predicted Price",
-        "yhat_lower": "Lower Confidence",
-        "yhat_upper": "Upper Confidence"
-    })
+        # Select only the required columns
+        filtered_forecast = future_forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
 
-    # Convert the filtered DataFrame to HTML
-    table_html = filtered_forecast.to_html(classes="table table-striped", index=False)
+        # Rename columns for clarity
+        filtered_forecast = filtered_forecast.rename(columns={
+            "ds": "Date",
+            "yhat": "Predicted Price",
+            "yhat_lower": "Lower Confidence",
+            "yhat_upper": "Upper Confidence"
+        })
+
+        # Convert the filtered DataFrame to HTML
+        table_html = filtered_forecast.to_html(classes="table table-striped", index=False)
 
     return render_template(
         "index.html",
@@ -119,7 +121,8 @@ def index():
     product_details = None
     product_image = None 
     supporting_text = None
-    table_html = None
+    predicted_prices = None
+    
 
     if request.method == "POST":
         amazon_link = request.form["amazon_link"]
